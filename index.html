@@ -35,25 +35,35 @@
         ctx.closePath();
       }
 
-      update(canvas, balls) {
-        this.x += this.dx;
-        this.y += this.dy;
+      // Update the position and handle collision
+update(canvas, balls) {
+  this.x += this.dx;
+  this.y += this.dy;
 
-        
-        if (this.x + this.radius > canvas.width || this.x - this.radius < 0) {
-          this.dx = -this.dx;
-        }
-        if (this.y + this.radius > canvas.height || this.y - this.radius < 0) {
-          this.dy = -this.dy;
-        }
+  // Check for collision with walls
+  if (this.x + this.radius > canvas.width) {
+    this.x = canvas.width - this.radius; // Adjust the position to prevent sticking
+    this.dx = -this.dx;
+  } else if (this.x - this.radius < 0) {
+    this.x = this.radius; // Adjust the position to prevent sticking
+    this.dx = -this.dx;
+  }
+  if (this.y + this.radius > canvas.height) {
+    this.y = canvas.height - this.radius; // Adjust the position to prevent sticking
+    this.dy = -this.dy;
+  } else if (this.y - this.radius < 0) {
+    this.y = this.radius; // Adjust the position to prevent sticking
+    this.dy = -this.dy;
+  }
 
-        // Check for collision with other balls
-        balls.forEach(ball => {
-          if (ball !== this && this.detectCollision(ball)) {
-            this.handleCollision(ball);
-          }
-        });
-      }
+  // Check for collision with other balls
+  balls.forEach(ball => {
+    if (ball !== this && this.detectCollision(ball)) {
+      this.handleCollision(ball);
+    }
+  });
+}
+
 
       detectCollision(otherBall) {
         const dx = this.x - otherBall.x;
