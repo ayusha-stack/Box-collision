@@ -1,0 +1,155 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <title>Object-Oriented Bouncing Balls Animation with Collision</title>
+  <style>
+    #canvas {
+      border: 1px solid #effaf6;
+      
+      margin-top:20%;
+      margin-left:10%;
+      margin-bottom:10%;
+      background-color:#effaf6;
+    }
+  </style>
+</head>
+<body>
+  <canvas id="canvas" width="500" height="300"></canvas>
+
+  <script>
+    class Ball {
+      constructor(x, y, dx, dy, radius, color) {
+        this.x = x;
+        this.y = y;
+        this.dx = dx;
+        this.dy = dy;
+        this.radius = radius;
+        this.color = color;
+      }
+
+      draw(ctx) {
+        ctx.beginPath();
+        ctx.arc(this.x, this.y, this.radius, 0, Math.PI * 2);
+        ctx.fillStyle = this.color;
+        ctx.fill();
+        ctx.closePath();
+      }
+
+      update(canvas, balls) {
+        this.x += this.dx;
+        this.y += this.dy;
+
+        
+        if (this.x + this.radius > canvas.width || this.x - this.radius < 0) {
+          this.dx = -this.dx;
+        }
+        if (this.y + this.radius > canvas.height || this.y - this.radius < 0) {
+          this.dy = -this.dy;
+        }
+
+        // Check for collision with other balls
+        balls.forEach(ball => {
+          if (ball !== this && this.detectCollision(ball)) {
+            this.handleCollision(ball);
+          }
+        });
+      }
+
+      detectCollision(otherBall) {
+        const dx = this.x - otherBall.x;
+        const dy = this.y - otherBall.y;
+        const distance = Math.sqrt(dx * dx + dy * dy);
+
+        if (distance < this.radius + otherBall.radius) {
+          return true; // Balls are colliding
+        }
+
+        return false; // Balls are not colliding
+      }
+
+      handleCollision(otherBall) {
+        // Calculate the normal vector
+        const nx = this.x - otherBall.x;
+        const ny = this.y - otherBall.y;
+        const magnitude = Math.sqrt(nx * nx + ny * ny);
+        const normalX = nx / magnitude;
+        const normalY = ny / magnitude;
+
+        // Calculate the unit tangent vector
+        const tangentX = -normalY;
+        const tangentY = normalX;
+
+        // Project velocities onto the normal and tangent vectors
+        const vaNormal = this.dx * normalX + this.dy * normalY;
+        const vaTangent = this.dx * tangentX + this.dy * tangentY;
+        const vbNormal = otherBall.dx * normalX + otherBall.dy * normalY;
+        const vbTangent = otherBall.dx * tangentX + otherBall.dy * tangentY;
+
+        // Calculate new normal velocities using one-dimensional collision equations
+        const newVaNormal = (vaNormal * (this.radius - otherBall.radius) + 2 * otherBall.radius * vbNormal) / (this.radius + otherBall.radius);
+        const newVbNormal = (vbNormal * (otherBall.radius - this.radius) + 2 * this.radius * vaNormal) / (this.radius + otherBall.radius);
+
+        // Convert velocities back to the original coordinate system
+        const newVaX = newVaNormal * normalX + vaTangent * tangentX;
+        const newVaY = newVaNormal * normalY + vaTangent * tangentY;
+        const newVbX = newVbNormal * normalX + vbTangent * tangentX;
+        const newVbY = newVbNormal * normalY + vbTangent * tangentY;
+
+        // Update velocities
+        this.dx = newVaX;
+        this.dy = newVaY;
+        otherBall.dx = newVbX;
+        otherBall.dy = newVbY;
+
+        // Add a small separation distance between the balls
+        const separation = 0.1;
+        const dxSeparation = normalX * separation;
+        const dySeparation = normalY * separation;
+        this.x += dxSeparation;
+        this.y += dySeparation;
+        otherBall.x -= dxSeparation;
+        otherBall.y -= dySeparation;
+      }
+    }
+
+    class BouncingBalls {
+      constructor(canvasId, numBalls, ballRadius, ballColor) {
+        this.canvas = document.getElementById(canvasId);
+        this.ctx = this.canvas.getContext('2d');
+        this.balls = [];
+
+        for (let i = 0; i < numBalls; i++) {
+          const x = Math.random() * (this.canvas.width - ballRadius * 2) + ballRadius;
+          const y = Math.random() * (this.canvas.height - ballRadius * 2) + ballRadius;
+          const dx = (Math.random() - 0.5) * 8;
+          const dy = (Math.random() - 0.5) * 4;
+          const ball = new Ball(x, y, dx, dy, ballRadius, ballColor);
+          this.balls.push(ball);
+        }
+      }
+
+      drawBalls() {
+        // Clear canvas
+        this.ctx.clearRect(0, 0, this.canvas.width, this.canvas.height);
+
+        // Draw and update each ball
+        this.balls.forEach(ball => {
+          ball.draw(this.ctx);
+          ball.update(this.canvas, this.balls);
+        });
+
+        // Request next frame
+        requestAnimationFrame(() => this.drawBalls());
+      }
+
+      startAnimation() {
+        this.drawBalls();
+      }
+    }
+
+    // Create an instance of BouncingBalls and start the animation
+    const bouncingBalls = new BouncingBalls('canvas', 25, 10, '#1d6d86');
+    bouncingBalls.startAnimation();
+  </script>
+</body>
+</html>
