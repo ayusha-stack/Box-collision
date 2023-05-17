@@ -1,7 +1,7 @@
 <!DOCTYPE html>
 <html>
 <head>
-  <title>Object-Oriented Bouncing Balls Animation with Collision</title>
+  <title>Box Collision</title>
   <style>
     #canvas {
       border: 1px solid #effaf6;
@@ -121,8 +121,8 @@
         for (let i = 0; i < numBalls; i++) {
           const x = Math.random() * (this.canvas.width - ballRadius * 2) + ballRadius;
           const y = Math.random() * (this.canvas.height - ballRadius * 2) + ballRadius;
-          const dx = (Math.random() - 0.5) * 8;
-          const dy = (Math.random() - 0.5) * 4;
+          const dx = (Math.random() - 0.5) * 10;
+          const dy = (Math.random() - 0.5) * 10;
           const ball = new Ball(x, y, dx, dy, ballRadius, ballColor);
           this.balls.push(ball);
         }
